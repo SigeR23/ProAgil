@@ -6,6 +6,7 @@ import { EventoService } from '../_services/evento.service';
 import { BsLocaleService } from 'ngx-bootstrap/datepicker';
 import { defineLocale } from 'ngx-bootstrap/chronos';
 import { ptBrLocale } from 'ngx-bootstrap/locale';
+import { ToastrService } from 'ngx-toastr';
 
 defineLocale('pt-br', ptBrLocale);
 
@@ -16,6 +17,8 @@ defineLocale('pt-br', ptBrLocale);
 })
 export class EventosComponent implements OnInit {
 
+  titulo = 'Eventos'
+
   eventosFiltrados!: Evento[];
   eventos!: Evento[];
   evento!: Evento;
@@ -25,6 +28,7 @@ export class EventosComponent implements OnInit {
   registerform!: FormGroup;
   modoSalvar = 'post'
   bodyDeletarEvento = '';
+  dataEvento!: string;
 
   _filtroLista!: string;
 
@@ -36,7 +40,12 @@ export class EventosComponent implements OnInit {
     this.eventosFiltrados = this.filtroLista ? this.filtrarEventos(this.filtroLista) : this.eventos;
   }
 
-  constructor(private eventoService: EventoService, private modalService: BsModalService, private fb: FormBuilder, private localeService: BsLocaleService) 
+  constructor(
+    private eventoService: EventoService
+    , private modalService: BsModalService
+    , private fb: FormBuilder
+    , private localeService: BsLocaleService
+    , private toastr: ToastrService) 
   { 
     this.localeService.use('pt-br');
   }
@@ -78,8 +87,12 @@ export class EventosComponent implements OnInit {
             console.log(novoEvento);
             template.hide();
             this.getEventos();
+            this.toastr.success('Registro alterado com sucesso!', 'Salvando');
+
           }, error => {
             console.log(error);
+            this.toastr.error(`Erro ao salvar registro: ${error}`, 'Salvando');
+            
           }
         );
       }
@@ -91,8 +104,10 @@ export class EventosComponent implements OnInit {
             console.log(novoEvento);
             template.hide();
             this.getEventos();
+            this.toastr.success('Registro inserido com sucesso!', 'Salvando');
           }, error => {
             console.log(error);
+            this.toastr.error(`Erro ao salvar registro: ${error}`, 'Salvando');
           }
         );
       }
@@ -101,6 +116,7 @@ export class EventosComponent implements OnInit {
 
   editarEvento(evento: Evento, template: any) {
       this.modoSalvar = 'put';
+      var x = atob(this.modoSalvar)
       this.evento = evento;
       this.openModal(template);
       this.registerform.patchValue(evento);
@@ -122,7 +138,10 @@ export class EventosComponent implements OnInit {
       () => {
           template.hide();
           this.getEventos();
+          this.toastr.success('Registro deletado com sucesso', 'Removendo');
+
         }, error => {
+          this.toastr.error('Erro ao tentar deletar o registro', 'Removendo');
           console.log(error);
         }
     );
@@ -139,9 +158,8 @@ export class EventosComponent implements OnInit {
     { 
       this.eventos = _eventos;
       this.eventosFiltrados = this.eventos;
-      console.log(_eventos);
     }, error => {
-      console.log(error);
+      this.toastr.error(`Erro ao tentar carregar eventos: ${error}`, 'Carregando');
     }
     ); 
   }
